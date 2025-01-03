@@ -240,10 +240,17 @@ namespace Epoch
 				}
 			}
 
+			if (aEntity.HasComponent<TerrainComponent>())
+			{
+				if (!AssetManager::IsAssetHandleValid(aEntity.GetComponent<TerrainComponent>().heightmap))
+				{
+					isValid = false;
+				}
+			}
+
 			if (aEntity.HasComponent<ScriptComponent>())
 			{
-				auto& sc = aEntity.GetComponent<ScriptComponent>();
-				if (!ScriptEngine::IsModuleValid(sc.scriptClassHandle))
+				if (!ScriptEngine::IsModuleValid(aEntity.GetComponent<ScriptComponent>().scriptClassHandle))
 				{
 					isValid = false;
 				}
@@ -2012,6 +2019,29 @@ namespace Epoch
 				}
 			}, EditorResources::CharacterControllerIcon);
 
+		//DONE - Multi Edit
+		DrawComponent<TerrainComponent>("Terrain", [&](auto& aFirstComponent, const std::vector<UUID>& aEntities, const bool aIsMultiEdit)
+			{
+				{
+					UI::BeginPropertyGrid();
+
+					AssetHandle assetHandle = aFirstComponent.heightmap;
+					ImGui::PushItemFlag(ImGuiItemFlags_MixedValue, aIsMultiEdit && IsInconsistentPrimitive<AssetHandle, TerrainComponent>([](const TerrainComponent& aOther) { return aOther.heightmap; }));
+					if (UI::Property_AssetReference<Texture2D>("Heightmap", assetHandle, "", { true }))
+					{
+						for (auto& entityID : aEntities)
+						{
+							Entity entity = myContext->GetEntityWithUUID(entityID);
+							auto& tc = entity.GetComponent<TerrainComponent>();
+							tc.heightmap = assetHandle;
+						}
+					}
+					ImGui::PopItemFlag();
+
+					UI::EndPropertyGrid();
+				}
+			});
+
 		//Wiki: DrawComponent
 
 		ImGui::Separator();
@@ -2095,6 +2125,7 @@ namespace Epoch
 					DisplayAddComponentEntry<SpotlightComponent>("Spotlight");
 					DisplayAddComponentEntry<SpriteRendererComponent>("Sprite Renderer");
 					DisplayAddComponentEntry<TextRendererComponent>("Text Renderer");
+					DisplayAddComponentEntry<TerrainComponent>("Terrain");
 					//DisplayAddComponentEntry<VideoPlayerComponent>("Video Player");
 
 					ImGui::EndMenu();
@@ -2135,9 +2166,12 @@ namespace Epoch
 				DisplayAddComponentEntry<SphereColliderComponent>("Sphere Collider", aComponentSearchString);
 				DisplayAddComponentEntry<SpotlightComponent>("Spotlight", aComponentSearchString);
 				DisplayAddComponentEntry<SpriteRendererComponent>("Sprite Renderer", aComponentSearchString);
+				DisplayAddComponentEntry<TerrainComponent>("Terrain", aComponentSearchString);
 				DisplayAddComponentEntry<TextRendererComponent>("Text Renderer", aComponentSearchString);
 				//DisplayAddComponentEntry<VideoPlayerComponent>("Video Player", aFirstComponentSearchString);
 				DisplayAddComponentEntry<VolumeComponent>("Volume", aComponentSearchString);
+
+				ImGui::Separator();
 
 				DisplayAddScriptComponentEntry(aComponentSearchString);
 			}
@@ -2347,6 +2381,12 @@ namespace Epoch
 				createdEntity = myContext->CreateEntity("Quad");
 				auto& mrc = createdEntity.AddComponent<MeshRendererComponent>();
 				mrc.mesh = Project::GetEditorAssetManager()->GetAssetHandleFromFilePath("Quad - Built-In");
+			}
+
+			if (ImGui::MenuItem("Terrain"))
+			{
+				createdEntity = myContext->CreateEntity("Terrain");
+				createdEntity.AddComponent<TerrainComponent>();
 			}
 
 			ImGui::EndMenu();

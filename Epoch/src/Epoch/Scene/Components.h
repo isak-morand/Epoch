@@ -261,6 +261,17 @@ namespace Epoch
 		PostProcessing::Vignette vignette;
 		PostProcessing::DistanceFog distanceFog;
 		PostProcessing::Posterization posterization;
+
+		VolumeComponent() = default;
+		VolumeComponent(const VolumeComponent&) = default;
+	};
+
+	struct TerrainComponent
+	{
+		AssetHandle heightmap = 0;
+
+		TerrainComponent() = default;
+		TerrainComponent(const TerrainComponent&) = default;
 	};
 
 #pragma endregion
@@ -358,7 +369,7 @@ namespace Epoch
 	using AllComponents = ComponentGroup<
 		TransformComponent, ActiveComponent, RelationshipComponent, PrefabComponent, ScriptComponent,
 		CameraComponent, SkyLightComponent, DirectionalLightComponent, SpotlightComponent, PointLightComponent,
-		MeshRendererComponent, SkinnedMeshRendererComponent, SpriteRendererComponent, VideoPlayerComponent, TextRendererComponent,
+		MeshRendererComponent, SkinnedMeshRendererComponent, SpriteRendererComponent, VideoPlayerComponent, TextRendererComponent, TerrainComponent,
 		RigidbodyComponent, BoxColliderComponent, SphereColliderComponent, CapsuleColliderComponent,
 		CharacterControllerComponent, ParticleSystemComponent, VolumeComponent>;
 
@@ -366,7 +377,7 @@ namespace Epoch
 	using AllComponentsDuplicate = ComponentGroup<
 		TransformComponent, ActiveComponent, PrefabComponent, ScriptComponent,
 		CameraComponent, SkyLightComponent, DirectionalLightComponent, SpotlightComponent, PointLightComponent,
-		MeshRendererComponent, SkinnedMeshRendererComponent, SpriteRendererComponent, VideoPlayerComponent, TextRendererComponent,
+		MeshRendererComponent, SkinnedMeshRendererComponent, SpriteRendererComponent, VideoPlayerComponent, TextRendererComponent, TerrainComponent,
 		RigidbodyComponent, BoxColliderComponent, SphereColliderComponent, CapsuleColliderComponent,
 		CharacterControllerComponent, ParticleSystemComponent, VolumeComponent>;
 }
