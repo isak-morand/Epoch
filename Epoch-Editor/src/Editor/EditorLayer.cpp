@@ -1331,6 +1331,12 @@ namespace Epoch
 
 		ImGuizmo::OPERATION operation = GetGizmoOperation();
 		ImGuizmo::MODE mode = (ImGuizmo::MODE)EditorSettings::Get().axisOrientationMode;
+		
+		bool cute = true;
+		if (cute)
+		{
+			LOG_DEBUG("cute uwu :>");
+		}
 
 		if (selections.size() == 1)
 		{
