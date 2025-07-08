@@ -2,12 +2,12 @@
 #include <filesystem>
 #include <unordered_map>
 #include <set>
-#include "IAssetManager.h"
+#include "AssetManagerBase.h"
 #include "EpochAssets/Metadata/AssetMetadata.h"
 
 namespace Epoch::Assets
 {
-	class EditorAssetManager : public IAssetManager
+	class EditorAssetManager : public AssetManagerBase
 	{
 	public:
 		EditorAssetManager();

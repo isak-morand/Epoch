@@ -6,7 +6,7 @@ namespace Epoch::Assets
 	class AssetManager
 	{
 	public:
-		inline static void SetActiveAssetManager(std::shared_ptr<IAssetManager> aAssetManager)
+		inline static void SetActiveAssetManager(std::shared_ptr<AssetManagerBase> aAssetManager)
 		{
 			staticAssetManager = aAssetManager;
 		}
@@ -22,10 +22,10 @@ namespace Epoch::Assets
 			return std::dynamic_pointer_cast<T>(asset);
 		}
 
-		inline static std::shared_ptr<IAssetManager> GetAssetManager() { return staticAssetManager; }
+		inline static std::shared_ptr<AssetManagerBase> GetAssetManager() { return staticAssetManager; }
 		inline static std::shared_ptr<EditorAssetManager> GetEditorAssetManager() { return std::static_pointer_cast<EditorAssetManager>(staticAssetManager); }
 
 	private:
-		static inline std::shared_ptr<IAssetManager> staticAssetManager;
+		static inline std::shared_ptr<AssetManagerBase> staticAssetManager;
 	};
 }

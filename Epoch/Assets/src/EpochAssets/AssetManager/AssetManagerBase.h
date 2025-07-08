@@ -6,11 +6,11 @@ namespace Epoch::Assets
 {
 	using AssetMap = std::unordered_map<AssetHandle, std::shared_ptr<Asset>>;
 
-	class IAssetManager
+	class AssetManagerBase
 	{
 	public:
-		IAssetManager() = default;
-		virtual ~IAssetManager() = default;
+		AssetManagerBase() = default;
+		virtual ~AssetManagerBase() = default;
 
 		virtual std::shared_ptr<Asset> GetAsset(AssetHandle aHandle) = 0;
 
