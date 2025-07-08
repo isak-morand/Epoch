@@ -66,13 +66,7 @@ namespace Epoch
 		assetManager->Init(project->GetAssetDirectory());
 
 		Epoch::EngineSpecification engineSpec;
-
-#ifdef _DEBUG
-		engineSpec.WindowProperties.Title = "My Girlfriend is mad at me if the window isn't titled Something Cute";
-#else
 		engineSpec.WindowProperties.Title = "Epoch Editor";
-#endif // _DEBUG
-
 		engineSpec.WindowProperties.StartHidden = true;
 		engineSpec.ImGuiEnabled = true;
 

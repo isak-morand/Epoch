@@ -2,7 +2,7 @@
 #include "PipelineState.h"
 #include "RenderContext.h"
 #include "Framebuffer.h"
-#include "Shader/Shader.h"
+#include "Shaders/Shader.h"
 
 namespace Epoch::Rendering
 {

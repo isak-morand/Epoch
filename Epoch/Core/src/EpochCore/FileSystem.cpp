@@ -6,7 +6,7 @@ namespace Epoch::Core
 {
 	bool FileSystem::Initialize()
 	{
-		bool succeeded = NFD::Init() != NFD_OKAY;
+		bool succeeded = NFD::Init() == NFD_OKAY;
 		EPOCH_ASSERT(succeeded, "Failed to init NFD_Extended!");
 		return succeeded;
 	}
