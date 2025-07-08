@@ -1,0 +1,11 @@
+Handle: 2826550511294781016
+Type: Model
+ImportSettings:
+  FlattenHierarchy: true
+SubAssets:
+  - Handle: 9950344207916952468
+    Type: Mesh
+    Name: Raccoon.001
+  - Handle: 9950345307428580679
+    Type: Mesh
+    Name: Raccoon.001

@@ -1,0 +1,17 @@
+# Binaries
+**/bin/
+!vendor/bin/premake/
+!vendor/assimp/bin
+**/bin-int/
+
+# Visual Studio files and folder
+.vs/
+**.sln
+**.vcxproj
+**.vcxproj.filters
+**.vcxproj.user
+**.csproj
+**.user
+
+# Folders
+Editor/logs/

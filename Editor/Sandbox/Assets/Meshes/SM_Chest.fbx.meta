@@ -1,0 +1,8 @@
+Handle: 17818076198096816287
+Type: Model
+ImportSettings:
+  FlattenHierarchy: true
+SubAssets:
+  - Handle: 4615339590844839697
+    Type: Mesh
+    Name: Lid

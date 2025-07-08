@@ -1,0 +1,8 @@
+Handle: 10955629889549739932
+Type: Model
+ImportSettings:
+  FlattenHierarchy: true
+SubAssets:
+  - Handle: 12079739764375534705
+    Type: Mesh
+    Name: Cube.002
