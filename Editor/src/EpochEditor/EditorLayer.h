@@ -23,5 +23,7 @@ namespace Epoch::Editor
 
 	private:
 		std::shared_ptr<Scenes::Scene> myScene;
+
+		UUID myLidEntity;
 	};
 }

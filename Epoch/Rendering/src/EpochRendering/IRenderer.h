@@ -1,6 +1,7 @@
 #pragma once
 #include <memory>
 #include <CommonUtilities/Color.h>
+#include <CommonUtilities/Math/Transform.h>
 
 namespace Epoch
 {
@@ -33,6 +34,6 @@ namespace Epoch::Rendering
 
 		//TEMP
 		virtual void SetTexture(std::shared_ptr<Assets::TextureAsset> aTexture) = 0;
-		virtual void SetMesh(std::shared_ptr<Assets::MeshAsset> aMesh) = 0;
+		virtual void SubmitMesh(std::shared_ptr<Assets::MeshAsset> aMesh, const CU::Matrix4x4f& aTransform) = 0;
 	};
 }

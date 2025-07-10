@@ -101,6 +101,7 @@ namespace Epoch::Rendering
 		ConstantBufferSpecification cbs;
 		cbs.SizeInBytes = sizeof(CU::Matrix4x4f);
 		myTestCamBuffer = std::make_shared<ConstantBuffer>(cbs);
+		myTestObjectBuffer = std::make_shared<ConstantBuffer>(cbs);
 
 
 		return true;
@@ -150,20 +151,20 @@ namespace Epoch::Rendering
 		}
 
 		//TEMP
-		auto layoutDesc = nvrhi::BindingLayoutDesc()
+		auto globalBindingLayoutDesc = nvrhi::BindingLayoutDesc()
 			.setVisibility(nvrhi::ShaderType::Vertex | nvrhi::ShaderType::Pixel)
-			.addItem(nvrhi::BindingLayoutItem::VolatileConstantBuffer(0)) // constants at b0
+			.addItem(nvrhi::BindingLayoutItem::ConstantBuffer(1))
 			.addItem(nvrhi::BindingLayoutItem::Texture_SRV(0))
 			.addItem(nvrhi::BindingLayoutItem::Sampler(0));
 
-		nvrhi::BindingLayoutHandle bindingLayout = RenderContext::Get().DeviceManager->GetDeviceHandle()->createBindingLayout(layoutDesc);
+		nvrhi::BindingLayoutHandle globalBindingLayout = RenderContext::Get().DeviceManager->GetDeviceHandle()->createBindingLayout(globalBindingLayoutDesc);
 
-		auto bindingSetDesc = nvrhi::BindingSetDesc()
-			.addItem(nvrhi::BindingSetItem::ConstantBuffer(0, myTestCamBuffer->GetHandle()))
+		auto globalBindingSetDesc = nvrhi::BindingSetDesc()
+			.addItem(nvrhi::BindingSetItem::ConstantBuffer(1, myTestCamBuffer->GetHandle()))
 			.addItem(nvrhi::BindingSetItem::Texture_SRV(0, myTestTexture->GetImage()->GetHandle()))
 			.addItem(nvrhi::BindingSetItem::Sampler(0, myTestTexture->GetSampler()->GetHandle()));
 
-		nvrhi::BindingSetHandle bindingSet = RenderContext::Get().DeviceManager->GetDeviceHandle()->createBindingSet(bindingSetDesc, bindingLayout);
+		nvrhi::BindingSetHandle globalBindingSet = RenderContext::Get().DeviceManager->GetDeviceHandle()->createBindingSet(globalBindingSetDesc, globalBindingLayout);
 
 
 		myCommandList->open();
@@ -173,33 +174,52 @@ namespace Epoch::Rendering
 
 		myCommandList->beginMarker("Render");
 
-		auto graphicsState = nvrhi::GraphicsState();
-		graphicsState.setPipeline(myTestPipelineState->GetHandle());
-		graphicsState.addBindingSet(bindingSet);
-		graphicsState.setFramebuffer(myTestPipelineState->GetTargetFrameBuffer()->GetHandle());
-		graphicsState.viewport.addViewportAndScissorRect(myTestPipelineState->GetTargetFrameBuffer()->GetHandle()->getFramebufferInfo().getViewport());
-		
-		nvrhi::VertexBufferBinding vbb = nvrhi::VertexBufferBinding()
-			.setBuffer(myTestMesh->GetVertexBuffer()->GetHandle())
-			.setSlot(0)
-			.setOffset(0);
-		graphicsState.addVertexBuffer(vbb);
-
-		nvrhi::IndexBufferBinding ibb = nvrhi::IndexBufferBinding()
-			.setBuffer(myTestMesh->GetIndexBuffer()->GetHandle())
-			.setFormat(nvrhi::Format::R32_UINT)
-			.setOffset(0);
-		graphicsState.setIndexBuffer(ibb);
-		
-		myCommandList->setGraphicsState(graphicsState);
-
-		const auto& subMeshses = myTestMesh->GetSubMeshes();
-		for (const auto& subMesh : subMeshses)
+		CU::Transform trans;
+		for (auto& dc : myDrawList)
 		{
-			auto drawArguments = nvrhi::DrawArguments()
-				.setVertexCount(subMesh.IndexCount)
-				.setStartIndexLocation(subMesh.IndexOffset);
-			myCommandList->drawIndexed(drawArguments);
+			myTestObjectBuffer->SetData({ (void*)&dc.transform, sizeof(CU::Matrix4x4f)});
+
+			auto objectLayoutDesc = nvrhi::BindingLayoutDesc()
+				.setVisibility(nvrhi::ShaderType::Vertex)
+				.addItem(nvrhi::BindingLayoutItem::ConstantBuffer(2));
+
+			nvrhi::BindingLayoutHandle objectBindingLayout = RenderContext::Get().DeviceManager->GetDeviceHandle()->createBindingLayout(objectLayoutDesc);
+
+			auto objectBindingSetDesc = nvrhi::BindingSetDesc()
+				.addItem(nvrhi::BindingSetItem::ConstantBuffer(2, myTestObjectBuffer->GetHandle()));
+
+			nvrhi::BindingSetHandle objectBindingSet = RenderContext::Get().DeviceManager->GetDeviceHandle()->createBindingSet(objectBindingSetDesc, objectBindingLayout);
+
+			auto mesh = myMeshLibrary.at(dc.mesh);
+
+			auto graphicsState = nvrhi::GraphicsState();
+			graphicsState.setPipeline(myTestPipelineState->GetHandle());
+			graphicsState.addBindingSet(globalBindingSet).addBindingSet(objectBindingSet);
+			graphicsState.setFramebuffer(myTestPipelineState->GetTargetFrameBuffer()->GetHandle());
+			graphicsState.viewport.addViewportAndScissorRect(myTestPipelineState->GetTargetFrameBuffer()->GetHandle()->getFramebufferInfo().getViewport());
+
+			nvrhi::VertexBufferBinding vbb = nvrhi::VertexBufferBinding()
+				.setBuffer(mesh->GetVertexBuffer()->GetHandle())
+				.setSlot(0)
+				.setOffset(0);
+			graphicsState.addVertexBuffer(vbb);
+
+			nvrhi::IndexBufferBinding ibb = nvrhi::IndexBufferBinding()
+				.setBuffer(mesh->GetIndexBuffer()->GetHandle())
+				.setFormat(nvrhi::Format::R32_UINT)
+				.setOffset(0);
+			graphicsState.setIndexBuffer(ibb);
+
+			myCommandList->setGraphicsState(graphicsState);
+
+			const auto& subMeshses = mesh->GetSubMeshes();
+			for (const auto& subMesh : subMeshses)
+			{
+				auto drawArguments = nvrhi::DrawArguments()
+					.setVertexCount(subMesh.IndexCount)
+					.setStartIndexLocation(subMesh.IndexOffset);
+				myCommandList->drawIndexed(drawArguments);
+			}
 		}
 
 		myCommandList->endMarker();
@@ -207,6 +227,8 @@ namespace Epoch::Rendering
 		myCommandList->close();
 
 		RenderContext::Get().DeviceManager->GetDeviceHandle()->executeCommandList(myCommandList);
+
+		myDrawList.clear();
 	}
 
 	void Renderer::EndFrame()
@@ -249,10 +271,17 @@ namespace Epoch::Rendering
 		myTestTexture = std::make_shared<Texture2D>(spec);
 	}
 	
-	void Renderer::SetMesh(std::shared_ptr<Assets::MeshAsset> aMesh)
+	void Renderer::SubmitMesh(std::shared_ptr<Assets::MeshAsset> aMesh, const CU::Matrix4x4f& aTransform)
 	{
-		const auto& data = aMesh->GetData();
+		auto& drawCall = myDrawList.emplace_back();
+		drawCall.mesh = aMesh->GetHandle();
+		
+		if (!myMeshLibrary.contains(aMesh->GetHandle()))
+		{
+			const auto& data = aMesh->GetData();
+			myMeshLibrary.emplace(aMesh->GetHandle(), std::make_shared<Mesh>("Test Mesh", data.Vertices, data.Indices, data.SubMeshes));
+		}
 
-		myTestMesh = std::make_shared<Mesh>("Test Mesh", data.Vertices, data.Indices, data.SubMeshes);
+		drawCall.transform = aTransform;
 	}
 }

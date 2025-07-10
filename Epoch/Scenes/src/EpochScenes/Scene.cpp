@@ -159,4 +159,16 @@ namespace Epoch::Scenes
 			PrintHierarchyRecursive(Entity{ child, this }, aDepth + 1);
 		}
 	}
+
+	CU::Matrix4x4f Scene::GetWorldSpaceTransformMatrix(Entity aEntity)
+	{
+		CU::Matrix4x4f transform = CU::Matrix4x4f::Identity;
+
+		Entity parent = aEntity.GetParent();
+		if (parent)
+		{
+			transform = GetWorldSpaceTransformMatrix(parent);
+		}
+		return aEntity.GetComponent<TransformComponent>().LocalTransform.GetMatrix() * transform;
+	}
 }

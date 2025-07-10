@@ -34,7 +34,7 @@ namespace Epoch
 		Engine(EngineSpecification aSpecification = EngineSpecification());
 		~Engine();
 
-		static Engine* GetInstance() { return myInstance; }
+		static Engine* Get() { return myInstance; }
 
 		void SetInitCallback(InitCallback cb) { myInitCallback = std::move(cb); }
 		void SetUpdateCallback(UpdateCallback cb) { myUpdateCallback = std::move(cb); }

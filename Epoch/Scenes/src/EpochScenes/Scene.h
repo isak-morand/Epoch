@@ -33,6 +33,8 @@ namespace Epoch::Scenes
 		void PrintHierarchy();
 		void PrintHierarchyRecursive(Entity aEntity, uint32_t aDepth = 0);
 
+		CU::Matrix4x4f GetWorldSpaceTransformMatrix(Entity aEntity);
+
 	private:
 
 

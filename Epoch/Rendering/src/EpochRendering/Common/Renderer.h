@@ -6,6 +6,7 @@
 //TEMP
 #include "Shaders/Shader.h"
 #include "PipelineState.h"
+#include <EpochCore/UUID.h>
 
 namespace Epoch
 {
@@ -42,7 +43,7 @@ namespace Epoch::Rendering
 
 		//TEMP
 		void SetTexture(std::shared_ptr<Assets::TextureAsset> aTexture) override;
-		void SetMesh(std::shared_ptr<Assets::MeshAsset> aMesh) override;
+		void SubmitMesh(std::shared_ptr<Assets::MeshAsset> aMesh, const CU::Matrix4x4f& aTransform) override;
 
 	private:
 		std::unique_ptr<DeviceManager> myDeviceManager;
@@ -63,8 +64,17 @@ namespace Epoch::Rendering
 		std::shared_ptr<Shader> myTestShader;
 		std::shared_ptr<PipelineState> myTestPipelineState;
 
-		std::shared_ptr<Mesh> myTestMesh;
+		struct DrawCommand
+		{
+			UUID mesh;
+			CU::Matrix4x4f transform;
+		};
+		std::vector<DrawCommand> myDrawList;
+
+		std::unordered_map<UUID, std::shared_ptr<Mesh>> myMeshLibrary;
+
 		std::shared_ptr<ConstantBuffer> myTestCamBuffer;
+		std::shared_ptr<ConstantBuffer> myTestObjectBuffer;
 		std::shared_ptr<Texture2D> myTestTexture;
 	};
 }

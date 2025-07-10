@@ -2,9 +2,14 @@ Shader "Standard"
 {
     VertexShader
     {
-        cbuffer CameraBuffer : register(b0)
+        cbuffer CameraBuffer : register(b1)
         {
             float4x4 CB_ViewProj;
+        }
+
+        cbuffer ObjectBuffer : register(b2)
+        {
+            float4x4 OB_Transform;
         }
     
         struct VertexInput
@@ -19,6 +24,7 @@ Shader "Standard"
         struct VertexOutput
         {
             float4 pos      : SV_POSITION;
+            float4 worldPos : WORLDPOSITION;
             float3 color    : COLOR;
             float2 uv       : UV;
         };
@@ -27,7 +33,8 @@ Shader "Standard"
         {
             VertexOutput output;
     
-            output.pos = mul(CB_ViewProj, float4(input.pos, 1));
+            output.worldPos = mul(OB_Transform, float4(input.pos, 1));
+            output.pos = mul(CB_ViewProj, output.worldPos);
             output.color = input.color;
             output.uv = input.uv;
     
@@ -43,6 +50,7 @@ Shader "Standard"
         struct VertexOutput
         {
             float4 pos      : SV_POSITION;
+            float4 worldPos : WORLDPOSITION;
             float3 color    : COLOR;
             float2 uv       : UV;
         };
