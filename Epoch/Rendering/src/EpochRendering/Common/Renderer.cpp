@@ -100,7 +100,9 @@ namespace Epoch::Rendering
 
 		ConstantBufferSpecification cbs;
 		cbs.SizeInBytes = sizeof(CU::Matrix4x4f);
+		cbs.DebugName = "Camera Buffer";
 		myTestCamBuffer = std::make_shared<ConstantBuffer>(cbs);
+		cbs.DebugName = "Object Buffer";
 		myTestObjectBuffer = std::make_shared<ConstantBuffer>(cbs);
 
 
