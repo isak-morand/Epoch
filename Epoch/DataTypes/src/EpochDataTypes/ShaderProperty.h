@@ -93,7 +93,7 @@ namespace Epoch::DataTypes
 
 	struct VectorProperty : ShaderProperty
 	{
-		CU::Vector4f DefaultColor;
+		CU::Vector4f DefaultValue;
 
 		bool ToDefaultValue(const std::string& aDefaultValueString) override
 		{
@@ -102,7 +102,7 @@ namespace Epoch::DataTypes
 			CU::Vector4f vector;
 			if (sscanf(aDefaultValueString.c_str(), "(%f, %f, %f, %f)", &vector.x, &vector.y, &vector.z, &vector.w) == 4)
 			{
-				DefaultColor = vector;
+				DefaultValue = vector;
 				return true;
 			}
 
@@ -131,13 +131,13 @@ namespace Epoch::DataTypes
 
 	struct Tex2DProperty : ShaderProperty
 	{
-		std::string defaultTexture; // "white", "black", etc.
+		std::string DefaultTexture; // "white", "black", etc.
 
 		bool ToDefaultValue(const std::string& aDefaultValueString) override
 		{
 			if (!aDefaultValueString.empty())
 			{
-				defaultTexture = aDefaultValueString;
+				DefaultTexture = aDefaultValueString;
 				return true;
 			}
 			return false;
