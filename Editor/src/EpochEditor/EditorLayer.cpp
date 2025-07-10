@@ -53,6 +53,7 @@ namespace Epoch::Editor
 		Scenes::Entity cubes = myScene->Instantiate(Assets::AssetManager::GetAsset<Assets::ModelAsset>(cubeTestHandle));
 		myScene->InstantiateChild(Assets::AssetManager::GetAsset<Assets::ModelAsset>(chest2Handle), cubes);
 		myScene->InstantiateChild(Assets::AssetManager::GetAsset<Assets::ModelAsset>(chest1Handle), cubes);
+		myScene->Instantiate(Assets::AssetManager::GetAsset<Assets::ModelAsset>(raccoonHandle));
 
 		myScene->PrintHierarchy();
 	}
