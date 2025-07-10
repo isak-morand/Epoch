@@ -158,7 +158,7 @@ namespace Epoch::Assets
 				subMeta.IsMemoryAsset = true;
 
 				assetManager->RegisterMetadata(subMeta);
-				assetManager->RegisterDependency(metadata.Handle, subMeta.Handle);
+				assetManager->RegisterSubAsset(metadata.Handle, subMeta.Handle);
 			}
 		}
 

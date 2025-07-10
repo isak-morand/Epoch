@@ -116,7 +116,7 @@ namespace Epoch::Rendering
 		{
 			static CU::Timer timer;
 
-			CU::Matrix4x4f proj = CU::Matrix4x4f::CreatePerspectiveProjection(80 * CU::Math::ToRad, 1, 50000, (float)mySwapChain->GetWidth() / (float)mySwapChain->GetHeight());
+			CU::Matrix4x4f proj = CU::Matrix4x4f::CreatePerspectiveProjection(80 * CU::Math::ToRad, 1, 25000, (float)mySwapChain->GetWidth() / (float)mySwapChain->GetHeight());
 			static CU::Transform camTrans;
 
 			float deltaTime = timer.Elapsed();
@@ -170,7 +170,6 @@ namespace Epoch::Rendering
 
 		nvrhi::utils::ClearColorAttachment(myCommandList, mySwapChain->GetFrameBuffer(), 0, nvrhi::Color(myClearColor.r, myClearColor.g, myClearColor.b, myClearColor.a));
 		nvrhi::utils::ClearDepthStencilAttachment(myCommandList, mySwapChain->GetFrameBuffer(), 1.0f, 0);
-		nvrhi::utils::ClearColorAttachment(myCommandList, myTestPipelineState->GetTargetFrameBuffer()->GetHandle(), 0, nvrhi::Color(0.0f));
 
 		myCommandList->beginMarker("Render");
 
@@ -194,12 +193,12 @@ namespace Epoch::Rendering
 		
 		myCommandList->setGraphicsState(graphicsState);
 
-		const auto& submeshses = myTestMesh->GetSubmeshes();
-		for (const auto& submesh : submeshses)
+		const auto& subMeshses = myTestMesh->GetSubMeshes();
+		for (const auto& subMesh : subMeshses)
 		{
 			auto drawArguments = nvrhi::DrawArguments()
-				.setVertexCount(submesh.IndexCount)
-				.setStartIndexLocation(submesh.IndexOffset);
+				.setVertexCount(subMesh.IndexCount)
+				.setStartIndexLocation(subMesh.IndexOffset);
 			myCommandList->drawIndexed(drawArguments);
 		}
 
@@ -254,6 +253,6 @@ namespace Epoch::Rendering
 	{
 		const auto& data = aMesh->GetData();
 
-		myTestMesh = std::make_shared<Mesh>("Test Mesh", data.Vertices, data.Indices, data.Submeshes);
+		myTestMesh = std::make_shared<Mesh>("Test Mesh", data.Vertices, data.Indices, data.SubMeshes);
 	}
 }

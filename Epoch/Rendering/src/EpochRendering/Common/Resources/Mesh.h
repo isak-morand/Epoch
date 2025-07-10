@@ -20,13 +20,13 @@ namespace Epoch::Rendering
 	public:
 		Mesh() = delete;
 		Mesh(std::string_view aDebugName, const std::vector<DataTypes::Vertex>& aVertices, const std::vector<DataTypes::Index>& aIndices);
-		Mesh(std::string_view aDebugName, const std::vector<DataTypes::Vertex>& aVertices, const std::vector<DataTypes::Index>& aIndices, const std::vector<DataTypes::MeshData::SubMesh>& aSubmeshes);
+		Mesh(std::string_view aDebugName, const std::vector<DataTypes::Vertex>& aVertices, const std::vector<DataTypes::Index>& aIndices, const std::vector<DataTypes::MeshData::SubMesh>& aSubMeshes);
 		~Mesh() = default;
 
 		std::shared_ptr<VertexBuffer> GetVertexBuffer() const { return myVertexBuffer; }
 		std::shared_ptr<IndexBuffer> GetIndexBuffer() const { return myIndexBuffer; }
 
-		const std::vector<DataTypes::MeshData::SubMesh>& GetSubmeshes() const { return mySubmeshes; }
+		const std::vector<DataTypes::MeshData::SubMesh>& GetSubMeshes() const { return mySubMeshes; }
 
 	private:
 		void CreateVertexAndIndexBuffers(const std::vector<DataTypes::Vertex>& aVertices, const std::vector<DataTypes::Index>& aIndices);
@@ -37,6 +37,6 @@ namespace Epoch::Rendering
 		std::shared_ptr<VertexBuffer> myVertexBuffer;
 		std::shared_ptr<IndexBuffer> myIndexBuffer;
 
-		std::vector<DataTypes::MeshData::SubMesh> mySubmeshes;
+		std::vector<DataTypes::MeshData::SubMesh> mySubMeshes;
 	};
 }

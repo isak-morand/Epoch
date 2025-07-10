@@ -9,17 +9,17 @@ namespace Epoch::Rendering
 		myDebugName = aDebugName;
 		CreateVertexAndIndexBuffers(aVertices, aIndices);
 
-		auto& submesh = mySubmeshes.emplace_back();
+		auto& submesh = mySubMeshes.emplace_back();
 		submesh.IndexCount = (uint32_t)aIndices.size();
 	}
 
-	Mesh::Mesh(std::string_view aDebugName, const std::vector<DataTypes::Vertex>& aVertices, const std::vector<DataTypes::Index>& aIndices, const std::vector<DataTypes::MeshData::SubMesh>& aSubmeshes)
+	Mesh::Mesh(std::string_view aDebugName, const std::vector<DataTypes::Vertex>& aVertices, const std::vector<DataTypes::Index>& aIndices, const std::vector<DataTypes::MeshData::SubMesh>& aSubMeshes)
 	{
 		myDebugName = aDebugName;
 		CreateVertexAndIndexBuffers(aVertices, aIndices);
 
-		EPOCH_ASSERT(!aSubmeshes.empty(), "Failed to create mesh! A mesh needs atleast one submesh");
-		mySubmeshes = aSubmeshes;
+		EPOCH_ASSERT(!aSubMeshes.empty(), "Failed to create mesh! A mesh needs atleast one sub-mesh");
+		mySubMeshes = aSubMeshes;
 	}
 
 	void Mesh::CreateVertexAndIndexBuffers(const std::vector<DataTypes::Vertex>& aVertices, const std::vector<DataTypes::Index>& aIndices)

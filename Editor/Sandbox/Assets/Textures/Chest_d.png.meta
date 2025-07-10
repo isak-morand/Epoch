@@ -3,3 +3,4 @@ Type: Texture
 ImportSettings:
   Filter: Linear
   Wrap: Wrap
+  AnisotropyLevel: "\x00"

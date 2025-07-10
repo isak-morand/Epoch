@@ -17,7 +17,7 @@ namespace Epoch::DataTypes
 			uint32_t IndexCount;
 		};
 		
-		std::vector<SubMesh> Submeshes;
+		std::vector<SubMesh> SubMeshes;
 
 		bool IsValid() const { return !Vertices.empty() && !Indices.empty(); }
 	};

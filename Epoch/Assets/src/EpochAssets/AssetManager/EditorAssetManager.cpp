@@ -41,8 +41,8 @@ namespace Epoch::Assets
 
 		if (metadata.IsMemoryAsset)
 		{
-			auto parentIt = myAssetDependencies.find(aHandle);
-			if (parentIt == myAssetDependencies.end()) return nullptr;
+			auto parentIt = myAssetParents.find(aHandle);
+			if (parentIt == myAssetParents.end()) return nullptr;
 
 			if (!GetAsset(parentIt->second)) return nullptr;
 
@@ -51,10 +51,21 @@ namespace Epoch::Assets
 		}
 		else
 		{
+			if (myAssetParents.contains(aHandle))
+			{
+				myAssetParents.erase(aHandle);
+			}
+
+			if (myAssetSubAssets.contains(aHandle))
+			{
+				myAssetSubAssets.erase(aHandle);
+			}
+
 			std::shared_ptr<Asset> asset;
 			if (AssetImporter::TryLoadData(metadata, asset))
 			{
 				myLoadedAssets[aHandle] = asset;
+				AssetMetadataSerializer::Serialize(GetMetaFilePath(aHandle), metadata);
 			}
 			return asset;
 		}
@@ -79,7 +90,7 @@ namespace Epoch::Assets
 	void EditorAssetManager::AddSubAsset(AssetHandle aParentAsset, std::shared_ptr<Asset> aAsset, std::string_view aName)
 	{
 		AddMemoryOnlyAsset(aAsset, aName);
-		RegisterDependency(aParentAsset, aAsset->GetHandle());
+		RegisterSubAsset(aParentAsset, aAsset->GetHandle());
 	}
 
 	void EditorAssetManager::ReloadAsset(AssetHandle aHandle)
@@ -112,9 +123,9 @@ namespace Epoch::Assets
 			RemoveAsset(subAsset);
 		}
 
-		if (myAssetDependencies.contains(aHandle))
+		if (myAssetParents.contains(aHandle))
 		{
-			myAssetDependencies.erase(aHandle);
+			myAssetParents.erase(aHandle);
 		}
 
 		if (myAssetSubAssets.contains(aHandle))
@@ -272,9 +283,9 @@ namespace Epoch::Assets
 		myAssetRegistry.insert_or_assign(aMetadata.Handle, aMetadata);
 	}
 
-	void EditorAssetManager::RegisterDependency(AssetHandle aAsset, AssetHandle aSubAsset)
+	void EditorAssetManager::RegisterSubAsset(AssetHandle aAsset, AssetHandle aSubAsset)
 	{
 		myAssetSubAssets[aAsset].insert(aSubAsset);
-		myAssetDependencies[aSubAsset] = aAsset;
+		myAssetParents[aSubAsset] = aAsset;
 	}
 }

@@ -68,10 +68,12 @@ namespace Epoch::Assets
 			return false;
 		}
 
+		std::vector<DataTypes::MeshData> meshDataList(scene->mNumMeshes);
+
 		for (uint32_t i = 0; i < scene->mNumMeshes; ++i)
 		{
 			const aiMesh* mesh = scene->mMeshes[i];
-			DataTypes::MeshData meshData;
+			auto& meshData = meshDataList[i];
 
 			for (uint32_t v = 0; v < mesh->mNumVertices; ++v)
 			{
@@ -93,52 +95,97 @@ namespace Epoch::Assets
 				meshData.Indices.push_back(mesh->mFaces[f].mIndices[2]);
 			}
 
-			meshData.Submeshes.push_back({ 0, (uint32_t)meshData.Indices.size() });
-
-			if (meshData.IsValid())
-			{
-				UUID meshUUID = Utils::GenerateSubAssetHandle(aMetadata.Handle, "Mesh", i);
-				auto meshAsset = std::make_shared<MeshAsset>(meshUUID);
-				SetMeshData(meshAsset, meshData);
-
-				AssetManager::GetEditorAssetManager()->AddSubAsset(aMetadata.Handle, meshAsset, mesh->mName.C_Str());
-
-				outModelData.MeshAssets.push_back(meshUUID);
-			}
+			meshData.SubMeshes.push_back({ 0, (uint32_t)meshData.Indices.size() });
 		}
 
-		std::function<void(aiNode*, int)> TraverseNode;
-		TraverseNode = [&](aiNode* aNode, int aParentIndex)
-			{
-				DataTypes::ModelData::Node ourNode;
-				ourNode.Name = aParentIndex == -1 ? aMetadata.FilePath.stem().string() : aNode->mName.C_Str();
-
-				ourNode.LocalTransform = Utils::FromAIMat4(aNode->mTransformation);
-
-				for (unsigned i = 0; i < aNode->mNumMeshes; ++i)
-				{
-					ourNode.MeshIndex = (uint32_t)aNode->mMeshes[i];
-					break;
-				}
-
-				int thisIndex = static_cast<int>(outModelData.Hierarchy.size());
-				outModelData.Hierarchy.push_back(ourNode);
-
-				if (aParentIndex != -1)
-				{
-					outModelData.Hierarchy[thisIndex].Parent = aParentIndex;
-					outModelData.Hierarchy[aParentIndex].Children.push_back(thisIndex);
-				}
-
-				for (unsigned i = 0; i < aNode->mNumChildren; ++i)
-				{
-					TraverseNode(aNode->mChildren[i], thisIndex);
-				}
-			};
-
-		if (scene->mRootNode)
+		if (aImportSettings.FlattenHierarchy)
 		{
-			TraverseNode(scene->mRootNode, -1);
+			DataTypes::MeshData combined;
+			uint32_t vertexOffset = 0;
+			uint32_t indexOffset = 0;
+
+			for (size_t i = 0; i < meshDataList.size(); ++i)
+			{
+				auto& src = meshDataList[i];
+
+				for (auto& v : src.Vertices)
+				{
+					combined.Vertices.push_back(v);
+				}
+
+				for (auto idx : src.Indices)
+				{
+					combined.Indices.push_back(idx + vertexOffset);
+				}
+
+				combined.SubMeshes.push_back({ indexOffset, (uint32_t)src.Indices.size() });
+
+				vertexOffset += (uint32_t)src.Vertices.size();
+				indexOffset += (uint32_t)src.Indices.size();
+			}
+
+			if (combined.IsValid())
+			{
+				UUID meshUUID = Utils::GenerateSubAssetHandle(aMetadata.Handle, "Mesh", 0);
+				auto meshAsset = std::make_shared<MeshAsset>(meshUUID);
+				SetMeshData(meshAsset, combined);
+				AssetManager::GetEditorAssetManager()->AddSubAsset(aMetadata.Handle, meshAsset, aMetadata.FilePath.stem().string());
+				outModelData.MeshAssets.push_back(meshUUID);
+
+				DataTypes::ModelData::Node rootNode;
+				rootNode.Name = aMetadata.FilePath.stem().string();
+				rootNode.MeshIndex = 0;
+				rootNode.LocalTransform = CU::Matrix4x4f::Identity;
+				outModelData.Hierarchy.push_back(rootNode);
+			}
+		}
+		else
+		{
+			for (size_t i = 0; i < meshDataList.size(); ++i)
+			{
+				auto& meshData = meshDataList[i];
+				if (!meshData.IsValid()) continue;
+
+				UUID meshUUID = Utils::GenerateSubAssetHandle(aMetadata.Handle, "Mesh", (uint32_t)i);
+				auto meshAsset = std::make_shared<MeshAsset>(meshUUID);
+				SetMeshData(meshAsset, meshData);
+				AssetManager::GetEditorAssetManager()->AddSubAsset(aMetadata.Handle, meshAsset, scene->mMeshes[i]->mName.C_Str());
+				outModelData.MeshAssets.push_back(meshUUID);
+			}
+
+			std::function<void(aiNode*, int)> TraverseNode;
+			TraverseNode = [&](aiNode* aNode, int aParentIndex)
+				{
+					DataTypes::ModelData::Node ourNode;
+					ourNode.Name = aParentIndex == -1 ? aMetadata.FilePath.stem().string() : aNode->mName.C_Str();
+
+					ourNode.LocalTransform = Utils::FromAIMat4(aNode->mTransformation);
+
+					for (unsigned i = 0; i < aNode->mNumMeshes; ++i)
+					{
+						ourNode.MeshIndex = (uint32_t)aNode->mMeshes[i];
+						break;
+					}
+
+					int thisIndex = static_cast<int>(outModelData.Hierarchy.size());
+					outModelData.Hierarchy.push_back(ourNode);
+
+					if (aParentIndex != -1)
+					{
+						outModelData.Hierarchy[thisIndex].Parent = aParentIndex;
+						outModelData.Hierarchy[aParentIndex].Children.push_back(thisIndex);
+					}
+
+					for (unsigned i = 0; i < aNode->mNumChildren; ++i)
+					{
+						TraverseNode(aNode->mChildren[i], thisIndex);
+					}
+				};
+
+			if (scene->mRootNode)
+			{
+				TraverseNode(scene->mRootNode, -1);
+			}
 		}
 
 		return outModelData.IsValid();

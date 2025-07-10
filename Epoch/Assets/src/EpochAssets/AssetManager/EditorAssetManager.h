@@ -42,14 +42,14 @@ namespace Epoch::Assets
 	private:
 		void RegisterAssets();
 		void RegisterMetadata(const AssetMetadata& aMetadata);
-		void RegisterDependency(AssetHandle aAsset, AssetHandle aSubAsset);
+		void RegisterSubAsset(AssetHandle aAsset, AssetHandle aSubAsset);
 
 	private:
 		std::filesystem::path myAssetDirectory;
 
 		std::unordered_map<AssetHandle, AssetMetadata> myAssetRegistry;
 		std::unordered_map<AssetHandle, std::set<AssetHandle>> myAssetSubAssets; //ParentAsset -> SubAssets
-		std::unordered_map<AssetHandle, AssetHandle> myAssetDependencies; //SubAsset -> ParentAsset
+		std::unordered_map<AssetHandle, AssetHandle> myAssetParents; //SubAsset -> ParentAsset
 
 		AssetMap myLoadedAssets;
 		AssetMap myMemoryAssets;
