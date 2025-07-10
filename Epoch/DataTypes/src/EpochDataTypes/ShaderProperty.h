@@ -6,7 +6,7 @@
 
 namespace Epoch::DataTypes
 {
-	enum class ShaderPropertyType { Unkown, Float, Range, Vector, Color, Tex2D };
+	enum class ShaderPropertyType : uint8_t { Unkown, Float, Range, Vector, Color, Tex2D };
 
 	inline ShaderPropertyType StringToShaderPropertyType(const std::string& aString)
 	{
@@ -22,7 +22,7 @@ namespace Epoch::DataTypes
 	{
 		std::string Name;
 		std::string DisplayName;
-		ShaderPropertyType Type;
+		ShaderPropertyType Type = ShaderPropertyType::Unkown;
 		uint32_t OffsetInBuffer = 0u;
 		uint32_t SizeInBuffer = 0u;
 

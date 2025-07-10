@@ -18,6 +18,9 @@ namespace Epoch::Assets
 
 	struct ModelImportSettings
 	{
+		// If hierarchy is flattened, Hierarchy will have one node.
+		// If hierarchy is not flattened, Hierarchy mirrors the original structure.
+
 		bool FlattenHierarchy = true;
 	};
 
