@@ -72,6 +72,44 @@ namespace Epoch::Rendering
 		//LOG_DEBUG("\n\nVertex Shader:\n{}\n\n", myShaderSources[ShaderStage::Vertex]);
 		//LOG_DEBUG("\n\nPixel Shader:\n{}\n\n", myShaderSources[ShaderStage::Pixel]);
 
+		if (!myShaderProperties.empty())
+		{
+			LOG_DEBUG("Shader Properties");
+			for (const auto& prop : myShaderProperties)
+			{
+				switch (prop->Type)
+				{
+				case DataTypes::ShaderPropertyType::Float:
+				{
+					LOG_DEBUG("  Float: {} = {}", prop->DisplayName, reinterpret_cast<DataTypes::FloatProperty*>(prop.get())->DefaultValue);
+					break;
+				}
+				case DataTypes::ShaderPropertyType::Range:
+				{
+					LOG_DEBUG("  Range: {} = {}", prop->DisplayName, reinterpret_cast<DataTypes::RangeProperty*>(prop.get())->DefaultValue);
+					break;
+				}
+				case DataTypes::ShaderPropertyType::Vector:
+				{
+					const CU::Vector4f& vec = reinterpret_cast<DataTypes::VectorProperty*>(prop.get())->DefaultValue;
+					LOG_DEBUG("  Vector: {} = {}, {}, {}, {}", prop->DisplayName, vec.x, vec.y, vec.z, vec.w);
+					break;
+				}
+				case DataTypes::ShaderPropertyType::Color:
+				{
+					const CU::Color& col = reinterpret_cast<DataTypes::ColorProperty*>(prop.get())->DefaultColor;
+					LOG_DEBUG("  Color: {} = {}, {}, {}, {}", prop->DisplayName, col.r, col.g, col.b, col.a);
+					break;
+				}
+				case DataTypes::ShaderPropertyType::Tex2D:
+				{
+					LOG_DEBUG("  Tex2D: {} = {}", prop->DisplayName, reinterpret_cast<DataTypes::Tex2DProperty*>(prop.get())->DefaultTexture);
+					break;
+				}
+				}
+			}
+		}
+
 		return true;
 	}
 
@@ -121,7 +159,7 @@ namespace Epoch::Rendering
 						myShaderProperties.push_back(std::move(property));
 					}
 				}
-				
+
 				++it;
 			}
 		}

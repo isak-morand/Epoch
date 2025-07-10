@@ -1,5 +1,10 @@
 Shader "Standard"
 {
+    Properties
+    {
+        _AlbedoTex ("Albedo Texture", Tex2D) = "white"
+    }
+
     VertexShader
     {
         cbuffer CameraBuffer : register(b1)
@@ -44,9 +49,6 @@ Shader "Standard"
     
     PixelShader
     {
-		Texture2D AlbedoTexture : register(t0);
-		SamplerState AlbedoTextureSampler : register(s0);
-
         struct VertexOutput
         {
             float4 pos      : SV_POSITION;
@@ -57,7 +59,7 @@ Shader "Standard"
     
         float4 main(VertexOutput input) : SV_TARGET
         {
-            return AlbedoTexture.Sample(AlbedoTextureSampler, input.uv);
+            return _AlbedoTex.Sample(_AlbedoTexSampler, input.uv);
         }
     }
 }
