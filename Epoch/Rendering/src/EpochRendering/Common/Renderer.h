@@ -64,6 +64,12 @@ namespace Epoch::Rendering
 		std::shared_ptr<Shader> myTestShader;
 		std::shared_ptr<PipelineState> myTestPipelineState;
 
+		nvrhi::BindingLayoutHandle myGlobalBindingLayout;
+		nvrhi::BindingLayoutHandle myObjectBindingLayout;
+
+		nvrhi::BindingSetHandle myGlobalBindingSet;
+		nvrhi::BindingSetHandle myObjectBindingSet;
+
 		struct DrawCommand
 		{
 			UUID mesh;

@@ -104,6 +104,35 @@ namespace Epoch::Rendering
 		myTestObjectBuffer = std::make_shared<ConstantBuffer>(cbs);
 
 
+		auto globalBindingLayoutDesc = nvrhi::BindingLayoutDesc()
+			.setVisibility(nvrhi::ShaderType::Vertex | nvrhi::ShaderType::Pixel)
+			.addItem(nvrhi::BindingLayoutItem::ConstantBuffer(1))
+			.addItem(nvrhi::BindingLayoutItem::Texture_SRV(0))
+			.addItem(nvrhi::BindingLayoutItem::Sampler(0));
+
+		myGlobalBindingLayout = RenderContext::Get().DeviceManager->GetDeviceHandle()->createBindingLayout(globalBindingLayoutDesc);
+
+		auto objectLayoutDesc = nvrhi::BindingLayoutDesc()
+			.setVisibility(nvrhi::ShaderType::Vertex)
+			.addItem(nvrhi::BindingLayoutItem::ConstantBuffer(2));
+
+		myObjectBindingLayout = RenderContext::Get().DeviceManager->GetDeviceHandle()->createBindingLayout(objectLayoutDesc);
+
+
+		auto globalBindingSetDesc = nvrhi::BindingSetDesc()
+			.addItem(nvrhi::BindingSetItem::ConstantBuffer(1, myTestCamBuffer->GetHandle()))
+			.addItem(nvrhi::BindingSetItem::Texture_SRV(0, myRendererResources.WhiteTexture->GetImage()->GetHandle()))
+			.addItem(nvrhi::BindingSetItem::Sampler(0, myRendererResources.WhiteTexture->GetSampler()->GetHandle()));
+
+		myGlobalBindingSet = RenderContext::Get().DeviceManager->GetDeviceHandle()->createBindingSet(globalBindingSetDesc, myGlobalBindingLayout);
+
+
+		auto objectBindingSetDesc = nvrhi::BindingSetDesc()
+			.addItem(nvrhi::BindingSetItem::ConstantBuffer(2, myTestObjectBuffer->GetHandle()));
+
+		myObjectBindingSet = RenderContext::Get().DeviceManager->GetDeviceHandle()->createBindingSet(objectBindingSetDesc, myObjectBindingLayout);
+
+
 		return true;
 	}
 
@@ -151,21 +180,6 @@ namespace Epoch::Rendering
 		}
 
 		//TEMP
-		auto globalBindingLayoutDesc = nvrhi::BindingLayoutDesc()
-			.setVisibility(nvrhi::ShaderType::Vertex | nvrhi::ShaderType::Pixel)
-			.addItem(nvrhi::BindingLayoutItem::ConstantBuffer(1))
-			.addItem(nvrhi::BindingLayoutItem::Texture_SRV(0))
-			.addItem(nvrhi::BindingLayoutItem::Sampler(0));
-
-		nvrhi::BindingLayoutHandle globalBindingLayout = RenderContext::Get().DeviceManager->GetDeviceHandle()->createBindingLayout(globalBindingLayoutDesc);
-
-		auto globalBindingSetDesc = nvrhi::BindingSetDesc()
-			.addItem(nvrhi::BindingSetItem::ConstantBuffer(1, myTestCamBuffer->GetHandle()))
-			.addItem(nvrhi::BindingSetItem::Texture_SRV(0, myTestTexture->GetImage()->GetHandle()))
-			.addItem(nvrhi::BindingSetItem::Sampler(0, myTestTexture->GetSampler()->GetHandle()));
-
-		nvrhi::BindingSetHandle globalBindingSet = RenderContext::Get().DeviceManager->GetDeviceHandle()->createBindingSet(globalBindingSetDesc, globalBindingLayout);
-
 
 		myCommandList->open();
 
@@ -179,35 +193,22 @@ namespace Epoch::Rendering
 		{
 			myTestObjectBuffer->SetData({ (void*)&dc.transform, sizeof(CU::Matrix4x4f)});
 
-			auto objectLayoutDesc = nvrhi::BindingLayoutDesc()
-				.setVisibility(nvrhi::ShaderType::Vertex)
-				.addItem(nvrhi::BindingLayoutItem::ConstantBuffer(2));
-
-			nvrhi::BindingLayoutHandle objectBindingLayout = RenderContext::Get().DeviceManager->GetDeviceHandle()->createBindingLayout(objectLayoutDesc);
-
-			auto objectBindingSetDesc = nvrhi::BindingSetDesc()
-				.addItem(nvrhi::BindingSetItem::ConstantBuffer(2, myTestObjectBuffer->GetHandle()));
-
-			nvrhi::BindingSetHandle objectBindingSet = RenderContext::Get().DeviceManager->GetDeviceHandle()->createBindingSet(objectBindingSetDesc, objectBindingLayout);
-
 			auto mesh = myMeshLibrary.at(dc.mesh);
 
 			auto graphicsState = nvrhi::GraphicsState();
 			graphicsState.setPipeline(myTestPipelineState->GetHandle());
-			graphicsState.addBindingSet(globalBindingSet).addBindingSet(objectBindingSet);
+			graphicsState.addBindingSet(myGlobalBindingSet).addBindingSet(myObjectBindingSet);
 			graphicsState.setFramebuffer(myTestPipelineState->GetTargetFrameBuffer()->GetHandle());
 			graphicsState.viewport.addViewportAndScissorRect(myTestPipelineState->GetTargetFrameBuffer()->GetHandle()->getFramebufferInfo().getViewport());
 
 			nvrhi::VertexBufferBinding vbb = nvrhi::VertexBufferBinding()
 				.setBuffer(mesh->GetVertexBuffer()->GetHandle())
-				.setSlot(0)
-				.setOffset(0);
+				.setSlot(0) .setOffset(0);
 			graphicsState.addVertexBuffer(vbb);
 
 			nvrhi::IndexBufferBinding ibb = nvrhi::IndexBufferBinding()
 				.setBuffer(mesh->GetIndexBuffer()->GetHandle())
-				.setFormat(nvrhi::Format::R32_UINT)
-				.setOffset(0);
+				.setFormat(nvrhi::Format::R32_UINT) .setOffset(0);
 			graphicsState.setIndexBuffer(ibb);
 
 			myCommandList->setGraphicsState(graphicsState);
@@ -269,6 +270,14 @@ namespace Epoch::Rendering
 
 		spec.ImageSpec.InitialData = Core::Buffer::Copy(textureData.Data);
 		myTestTexture = std::make_shared<Texture2D>(spec);
+
+
+		auto globalBindingSetDesc = nvrhi::BindingSetDesc()
+			.addItem(nvrhi::BindingSetItem::ConstantBuffer(1, myTestCamBuffer->GetHandle()))
+			.addItem(nvrhi::BindingSetItem::Texture_SRV(0, myTestTexture->GetImage()->GetHandle()))
+			.addItem(nvrhi::BindingSetItem::Sampler(0, myTestTexture->GetSampler()->GetHandle()));
+
+		myGlobalBindingSet = RenderContext::Get().DeviceManager->GetDeviceHandle()->createBindingSet(globalBindingSetDesc, myGlobalBindingLayout);
 	}
 	
 	void Renderer::SubmitMesh(std::shared_ptr<Assets::MeshAsset> aMesh, const CU::Matrix4x4f& aTransform)
