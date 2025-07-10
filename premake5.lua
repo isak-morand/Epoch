@@ -8,7 +8,7 @@ newoption
 			{ "runtime", "Runtime" },
 		}
 	}
-targetApp = _OPTIONS["target"]
+targetApp = _OPTIONS["target"] or "editor"
 
 newoption
 	{
@@ -21,7 +21,7 @@ newoption
 			{ "vulkan", "Vulkan" },
 		}
 	}
-renderapi = _OPTIONS["render-api"]
+renderapi = _OPTIONS["render-api"] or "dx11"
 
 function apply_simd_flags()
     filter { "configurations:Release or configurations:Dist" }
