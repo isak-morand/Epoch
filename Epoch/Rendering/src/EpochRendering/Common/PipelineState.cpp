@@ -141,6 +141,7 @@ namespace Epoch::Rendering
 		nvrhi::RasterState& rasterState = pipelineDesc.renderState.rasterState;
 		rasterState.cullMode = Utils::GetNVRHICullMode(mySpecification.RasterizerCullMode);
 		rasterState.fillMode = mySpecification.Wireframe ? nvrhi::RasterFillMode::Wireframe : nvrhi::RasterFillMode::Solid;
+		rasterState.depthClipEnable = true;
 
 #pragma endregion
 
