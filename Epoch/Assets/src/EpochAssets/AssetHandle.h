@@ -3,7 +3,7 @@
 
 namespace Epoch
 {
-	using AssetHandle = Epoch::UUID;
+	using AssetHandle = UUID;
 
 	template<typename T>
 	class TypedAssetHandle
