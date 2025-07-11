@@ -21,7 +21,7 @@ namespace Epoch::Assets
 		// If hierarchy is flattened, Hierarchy will have one node.
 		// If hierarchy is not flattened, Hierarchy mirrors the original structure.
 
-		bool FlattenHierarchy = true;
+		bool FlattenHierarchy = false;
 	};
 
 	using ImportSettingsVariant = std::variant<std::monostate, TextureImportSettings, ModelImportSettings>;
