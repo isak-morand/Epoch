@@ -36,6 +36,7 @@ namespace Epoch::Editor
 		TypedAssetHandle<Assets::ModelAsset> chest2Handle(2244813137981101981); //Separate
 		TypedAssetHandle<Assets::ModelAsset> raccoonHandle(2826550511294781016);
 		TypedAssetHandle<Assets::ModelAsset> cubeTestHandle(10955629889549739932);
+		TypedAssetHandle<Assets::ModelAsset> superStefanHandle(13809844527519340069);
 		
 		Scenes::Entity cubes = myScene->Instantiate(Assets::AssetManager::GetAsset<Assets::ModelAsset>(cubeTestHandle));
 		cubes.GetComponent<Scenes::TransformComponent>().LocalTransform.SetTranslation({ -250, 0, 0 });
@@ -45,11 +46,14 @@ namespace Epoch::Editor
 		Scenes::Entity lid{ separateChest.GetComponent<Scenes::ChildrenComponent>().Children[1], myScene.get() };
 		lid.GetComponent<Scenes::TransformComponent>().LocalTransform.SetRotation(-123.f * CU::Math::ToRad, 0.f, 0.f);
 		myLidEntity = lid.GetUUID();
-
+		
 		Scenes::Entity mergedChest = myScene->Instantiate(Assets::AssetManager::GetAsset<Assets::ModelAsset>(chest1Handle));
 		mergedChest.GetComponent<Scenes::TransformComponent>().LocalTransform.SetTranslation({ 250, 0, -150 });
 		
 		Scenes::Entity raccoon = myScene->Instantiate(Assets::AssetManager::GetAsset<Assets::ModelAsset>(raccoonHandle));
+		
+		Scenes::Entity stefan = myScene->Instantiate(Assets::AssetManager::GetAsset<Assets::ModelAsset>(superStefanHandle));
+		stefan.GetComponent<Scenes::TransformComponent>().LocalTransform.SetTranslation({ 0, 0, -150 });
 
 		myScene->PrintHierarchy();
 	}
