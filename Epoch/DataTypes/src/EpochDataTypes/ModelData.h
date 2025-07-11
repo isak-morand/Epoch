@@ -9,6 +9,7 @@ namespace Epoch::DataTypes
 	struct ModelData
 	{
 		std::vector<UUID> MeshAssets;
+		UUID SkeletonAsset = 0;
 
 		struct Node
 		{

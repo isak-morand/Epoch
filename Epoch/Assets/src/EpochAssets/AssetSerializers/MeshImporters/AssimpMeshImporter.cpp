@@ -1,4 +1,6 @@
 #include "AssimpMeshImporter.h"
+#include <unordered_set>
+#include <CommonUtilities/Math/Transform.h>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 #include <assimp/Importer.hpp>
@@ -17,7 +19,7 @@ namespace Epoch::Assets
 		aiProcess_CalcTangentSpace |        // Create binormals/tangents just in case
 		aiProcess_GenUVCoords |             // Convert UVs if required 
 		//aiProcess_OptimizeGraph |
-		aiProcess_FindInstances |
+		//aiProcess_FindInstances |
 		aiProcess_OptimizeMeshes |          // Batch draws where possible
 		aiProcess_ImproveCacheLocality |
 		aiProcess_JoinIdenticalVertices |
@@ -67,6 +69,14 @@ namespace Epoch::Assets
 			LOG_ERROR("Failed to import model:{} {}", aMetadata.FilePath.stem().string(), importer.GetErrorString());
 			return false;
 		}
+
+		//DataTypes::Skeleton skeleton;
+		//ImportSkeleton(scene, skeleton);
+		//std::unordered_map<std::string_view, uint32_t> boneNameToIndex;
+		//for (size_t i = 0; i < skeleton.BoneNames.size(); ++i)
+		//{
+		//	boneNameToIndex[skeleton.BoneNames[i]] = static_cast<uint32_t>(i);
+		//}
 
 		std::vector<DataTypes::MeshData> meshDataList(scene->mNumMeshes);
 
@@ -189,5 +199,106 @@ namespace Epoch::Assets
 		}
 
 		return outModelData.IsValid();
+	}
+
+	bool AssimpMeshImporter::ImportSkeleton(const aiScene* scene, DataTypes::Skeleton& outSkeleton)
+	{
+		if (!scene || !scene->mRootNode)
+		{
+			return false;
+		}
+
+		std::unordered_set<std::string_view> boneNamesSet;
+
+		for (uint32_t m = 0; m < scene->mNumMeshes; ++m)
+		{
+			const aiMesh* mesh = scene->mMeshes[m];
+			for (uint32_t b = 0; b < mesh->mNumBones; ++b)
+			{
+				boneNamesSet.insert(mesh->mBones[b]->mName.C_Str());
+			}
+		}
+
+		if (boneNamesSet.empty())
+		{
+			return false;
+		}
+
+		struct BoneNode
+		{
+			std::string Name;
+			int ParentIndex = -1;
+			CU::Matrix4x4f LocalTransform;
+		};
+
+		std::vector<BoneNode> bones;
+		std::unordered_map<std::string, uint32_t> nameToIndex;
+
+		std::function<void(aiNode*, int)> TraverseNodes;
+		TraverseNodes = [&](aiNode* node, int parentBoneIndex)
+			{
+				std::string nodeName = node->mName.C_Str();
+
+				int thisBoneIndex = -1;
+				bool isBone = boneNamesSet.count(nodeName) > 0;
+
+				if (isBone)
+				{
+					BoneNode bone;
+					bone.Name = nodeName;
+					bone.ParentIndex = parentBoneIndex;
+					bone.LocalTransform = Utils::FromAIMat4(node->mTransformation);
+
+					thisBoneIndex = static_cast<int>(bones.size());
+					bones.push_back(bone);
+					nameToIndex[nodeName] = thisBoneIndex;
+				}
+
+				for (uint32_t i = 0; i < node->mNumChildren; ++i)
+				{
+					TraverseNodes(node->mChildren[i], thisBoneIndex);
+				}
+			};
+
+		TraverseNodes(scene->mRootNode, -1);
+
+		if (bones.empty())
+		{
+			return false;
+		}
+
+		size_t boneCount = bones.size();
+		outSkeleton.BoneNames.resize(boneCount);
+		outSkeleton.ParentIndices.resize(boneCount);
+		outSkeleton.RestPose.resize(boneCount);
+		outSkeleton.BoneToWorldPose.resize(boneCount);
+
+		for (size_t i = 0; i < boneCount; ++i)
+		{
+			const auto& bone = bones[i];
+
+			outSkeleton.BoneNames[i] = bone.Name;
+			outSkeleton.ParentIndices[i] = bone.ParentIndex;
+
+			DataTypes::BoneTransform& rest = outSkeleton.RestPose[i];
+			bone.LocalTransform.Decompose(rest.Translation, rest.Rotation, rest.Scale);
+		}
+
+		for (size_t i = 0; i < boneCount; ++i)
+		{
+			CU::Matrix4x4f localMatrix = CU::Transform(outSkeleton.RestPose[i].Translation, outSkeleton.RestPose[i].Rotation, outSkeleton.RestPose[i].Scale).GetMatrix();
+
+			int parent = outSkeleton.ParentIndices[i];
+			if (parent >= 0)
+			{
+				outSkeleton.BoneToWorldPose[i] = localMatrix * outSkeleton.BoneToWorldPose[parent];
+			}
+			else
+			{
+				outSkeleton.BoneToWorldPose[i] = localMatrix;
+			}
+		}
+
+		return outSkeleton.IsValid();
 	}
 }

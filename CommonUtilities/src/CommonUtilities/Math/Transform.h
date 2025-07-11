@@ -10,6 +10,7 @@ namespace CU
 	{
 	public:
 		Transform(Vector3f aTranslation = Vector3f::Zero, Vector3f aRotation = Vector3f::Zero, Vector3f aScale = Vector3f::One);
+		Transform(Vector3f aTranslation, Quatf aRotation, Vector3f aScale = Vector3f::One);
 		Transform(const Matrix4x4f& aMatrix);
 		~Transform() = default;
 

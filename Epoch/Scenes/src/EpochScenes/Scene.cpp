@@ -106,6 +106,9 @@ namespace Epoch::Scenes
 		for (size_t i = 0; i < modelData.Hierarchy.size(); ++i)
 		{
 			const auto& node = modelData.Hierarchy[i];
+
+			if (!node.IsRoot() && node.MeshIndex == UINT32_MAX) continue;
+
 			Entity entity;
 
 			if (!node.IsRoot())

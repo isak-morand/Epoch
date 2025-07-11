@@ -4,6 +4,11 @@ namespace CU
 {
 	Transform::Transform(Vector3f aTranslation, Vector3f aRotation, Vector3f aScale) : myTranslation(aTranslation), myRotationEuler(aRotation), myRotationQuat(aRotation), myScale(aScale), myIsDirty(true) {}
 
+	Transform::Transform(Vector3f aTranslation, Quatf aRotation, Vector3f aScale) : myTranslation(aTranslation), myRotationQuat(aRotation), myScale(aScale), myIsDirty(true)
+	{
+		myRotationEuler = myRotationQuat.GetEulerAngles();
+	}
+
 	Transform::Transform(const Matrix4x4f& aMatrix) : myMatrix(aMatrix)
 	{
 		aMatrix.Decompose(myTranslation, myRotationQuat, myScale);

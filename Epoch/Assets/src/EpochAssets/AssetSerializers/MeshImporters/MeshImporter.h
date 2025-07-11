@@ -2,6 +2,7 @@
 #include <filesystem>
 #include <EpochDataTypes/ModelData.h>
 #include <EpochDataTypes/MeshData.h>
+#include <EpochDataTypes/SkeletonData.h>
 #include "EpochAssets/Metadata/AssetMetadata.h"
 
 namespace Epoch::Assets

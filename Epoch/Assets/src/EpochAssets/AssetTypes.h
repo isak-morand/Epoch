@@ -10,6 +10,7 @@ namespace Epoch::Assets
 		Texture,
 		Model,
 		Mesh,
+		Skeleton,
 		Material,
 		Scene
 	};
