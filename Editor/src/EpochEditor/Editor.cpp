@@ -1,5 +1,6 @@
 #include <filesystem>
 #include <EpochCore/EntryPoint.h>
+#include <EpochCore/JobSystem.h>
 #include <EpochSettings/SettingsManager.h>
 #include <EpochEngine/Engine.h>
 #include <EpochProjects/Project.h>
@@ -61,6 +62,8 @@ namespace Epoch
 			Settings::SettingsManager::Save("Editor");
 		}
 
+		Core::JobSystem::GetJobSystem().Init();
+
 		std::shared_ptr<Assets::EditorAssetManager> assetManager = std::make_shared<Assets::EditorAssetManager>();
 		Assets::AssetManager::SetActiveAssetManager(assetManager);
 		assetManager->Init(project->GetAssetDirectory());
@@ -89,5 +92,7 @@ namespace Epoch
 		});
 
 		engine.Run();
+
+		Core::JobSystem::GetJobSystem().ShutDown();
 	}
 }

@@ -1,0 +1,8 @@
+Handle: 8699974360106875205
+Type: Model
+ImportSettings:
+  FlattenHierarchy: false
+SubAssets:
+  - Handle: 1464337337693270279
+    Type: Mesh
+    Name: stanford-bunny

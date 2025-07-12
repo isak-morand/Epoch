@@ -13,6 +13,7 @@ namespace Epoch::Assets
 		virtual ~AssetManagerBase() = default;
 
 		virtual std::shared_ptr<Asset> GetAsset(AssetHandle aHandle) = 0;
+		virtual std::shared_ptr<Asset> GetAssetAsync(AssetHandle aHandle) = 0;
 
 		virtual void AddMemoryOnlyAsset(std::shared_ptr<Asset> aAsset, std::string_view aName = {}) = 0;
 

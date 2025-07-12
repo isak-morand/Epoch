@@ -1,5 +1,6 @@
 #include "EditorAssetManager.h"
 #include <CommonUtilities/StringUtils.h>
+#include <EpochCore/JobSystem.h>
 #include "EpochAssets/AssetExtensions.h"
 #include "EpochAssets/AssetImporter.h"
 #include "EpochAssets/Metadata/AssetMetadataSerializer.h"
@@ -69,6 +70,85 @@ namespace Epoch::Assets
 			}
 			return asset;
 		}
+	}
+
+	std::shared_ptr<Asset> EditorAssetManager::GetAssetAsync(AssetHandle aHandle)
+	{
+		if (auto it = myMemoryAssets.find(aHandle); it != myMemoryAssets.end())
+		{
+			return it->second;
+		}
+
+		if (auto it = myLoadedAssets.find(aHandle); it != myLoadedAssets.end())
+		{
+			return it->second;
+		}
+
+		const AssetMetadata& metadata = GetMetadata(aHandle);
+		if (!metadata.IsValid())
+		{
+			return nullptr;
+		}
+
+		auto parentIt = myAssetParents.find(aHandle);
+		if (parentIt != myAssetParents.end())
+		{
+			AssetHandle parent = parentIt->second;
+			std::shared_ptr<Asset> parentAsset = GetAssetAsync(parent);
+			if (!parentAsset)
+			{
+				return nullptr; // Parent still loading
+			}
+
+			// Parent loaded; sub-asset should now be registered
+			auto subIt = myMemoryAssets.find(aHandle);
+			return subIt != myMemoryAssets.end() ? subIt->second : nullptr;
+		}
+
+		// Already loading?
+		auto it = myLoadingAssets.find(aHandle);
+		if (it != myLoadingAssets.end())
+		{
+			auto& future = it->second;
+			if (future.wait_for(std::chrono::seconds(0)) == std::future_status::ready)
+			{
+				std::shared_ptr<Asset> asset = future.get();
+				myLoadingAssets.erase(aHandle);
+
+				if (asset)
+				{
+					myLoadedAssets[aHandle] = asset;
+					AssetMetadataSerializer::Serialize(GetMetaFilePath(aHandle), metadata);
+				}
+				return asset;
+			}
+			return nullptr;
+		}
+		else
+		{
+			if (myAssetParents.contains(aHandle))
+			{
+				myAssetParents.erase(aHandle);
+			}
+
+			if (myAssetSubAssets.contains(aHandle))
+			{
+				myAssetSubAssets.erase(aHandle);
+			}
+		}
+
+		// Submit loading job
+		auto& js = Core::JobSystem::GetJobSystem();
+		std::shared_future<std::shared_ptr<Asset>> future =
+			js.SubmitJob("LoadAsset_" + std::to_string(aHandle), [=]() -> std::shared_ptr<Asset>
+						 {
+							 std::shared_ptr<Asset> loaded;
+							 if (AssetImporter::TryLoadData(metadata, loaded)) return loaded;
+							 return nullptr;
+						 });
+
+		myLoadingAssets[aHandle] = future;
+		return nullptr;
 	}
 
 	void EditorAssetManager::AddMemoryOnlyAsset(std::shared_ptr<Asset> aAsset, std::string_view aName)
