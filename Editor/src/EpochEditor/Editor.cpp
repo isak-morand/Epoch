@@ -84,6 +84,14 @@ namespace Epoch
 			editorLayerID = layerStack.PushLayer(std::make_unique<Editor::EditorLayer>());
 		});
 
+		/*
+		engine.SetUpdateCallback
+		([&]()
+		{
+			assetManager->FlushLoadedAssets();
+		});
+		*/
+
 		engine.SetShutdownCallback
 		([&]()
 		{

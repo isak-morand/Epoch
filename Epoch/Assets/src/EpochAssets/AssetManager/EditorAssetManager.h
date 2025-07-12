@@ -16,8 +16,10 @@ namespace Epoch::Assets
 
 		void Init(const std::filesystem::path& aAssetDirectory);
 
+		//void FlushLoadedAssets() override;
+
 		std::shared_ptr<Asset> GetAsset(AssetHandle aHandle) override;
-		std::shared_ptr<Asset> GetAssetAsync(AssetHandle aHandle) override;
+		//std::shared_ptr<Asset> GetAssetAsync(AssetHandle aHandle) override;
 
 		void AddMemoryOnlyAsset(std::shared_ptr<Asset> aAsset, std::string_view aName = {}) override;
 		void AddSubAsset(AssetHandle aParentAsset, std::shared_ptr<Asset> aAsset, std::string_view aName = {});
@@ -53,7 +55,7 @@ namespace Epoch::Assets
 		std::unordered_map<AssetHandle, std::set<AssetHandle>> myAssetSubAssets; //ParentAsset -> SubAssets
 		std::unordered_map<AssetHandle, AssetHandle> myAssetParents; //SubAsset -> ParentAsset
 
-		std::unordered_map<AssetHandle, std::shared_future<std::shared_ptr<Asset>>> myLoadingAssets;
+		//std::unordered_map<AssetHandle, std::shared_future<std::shared_ptr<Asset>>> myLoadingAssets;
 
 		AssetMap myLoadedAssets;
 		AssetMap myMemoryAssets;

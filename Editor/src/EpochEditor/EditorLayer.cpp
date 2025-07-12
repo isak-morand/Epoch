@@ -98,7 +98,8 @@ namespace Epoch::Editor
 			Scenes::Entity entity{ id, myScene.get() };
 			const auto& mrc = view.get<Scenes::MeshRendererComponent>(id);
 
-			auto mesh = Assets::AssetManager::GetAssetAsync<Assets::MeshAsset>(mrc.Mesh);
+			//auto mesh = Assets::AssetManager::GetAssetAsync<Assets::MeshAsset>(mrc.Mesh);
+			auto mesh = Assets::AssetManager::GetAsset<Assets::MeshAsset>(mrc.Mesh);
 			if (!mesh)
 			{
 				continue;

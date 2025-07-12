@@ -22,6 +22,32 @@ namespace Epoch::Assets
 		RegisterAssets();
 	}
 
+	/*void EditorAssetManager::FlushLoadedAssets()
+	{
+		std::lock_guard<std::mutex> lock(myAssetMutex);
+
+		for (auto it = myLoadingAssets.begin(); it != myLoadingAssets.end();)
+		{
+			auto& future = it->second;
+			if (future.wait_for(std::chrono::seconds(0)) != std::future_status::ready)
+			{
+				++it;
+				continue;
+			}
+
+			std::shared_ptr<Asset> asset = future.get();
+
+			if (asset)
+			{
+				myLoadedAssets[it->first] = asset;
+				const AssetMetadata& metadata = GetMetadata(it->first);
+				AssetMetadataSerializer::Serialize(GetMetaFilePath(it->first), metadata);
+			}
+
+			it = myLoadingAssets.erase(it);
+		}
+	}*/
+
 	std::shared_ptr<Asset> EditorAssetManager::GetAsset(AssetHandle aHandle)
 	{
 		if (auto it = myMemoryAssets.find(aHandle); it != myMemoryAssets.end())
@@ -40,11 +66,9 @@ namespace Epoch::Assets
 			return nullptr;
 		}
 
-		if (metadata.IsMemoryAsset)
+		auto parentIt = myAssetParents.find(aHandle);
+		if (parentIt != myAssetParents.end())
 		{
-			auto parentIt = myAssetParents.find(aHandle);
-			if (parentIt == myAssetParents.end()) return nullptr;
-
 			if (!GetAsset(parentIt->second)) return nullptr;
 
 			auto subIt = myMemoryAssets.find(aHandle);
@@ -70,10 +94,13 @@ namespace Epoch::Assets
 			}
 			return asset;
 		}
+		return nullptr;
 	}
 
-	std::shared_ptr<Asset> EditorAssetManager::GetAssetAsync(AssetHandle aHandle)
+	/*std::shared_ptr<Asset> EditorAssetManager::GetAssetAsync(AssetHandle aHandle)
 	{
+		std::lock_guard<std::mutex> lock(myAssetMutex);
+
 		if (auto it = myMemoryAssets.find(aHandle); it != myMemoryAssets.end())
 		{
 			return it->second;
@@ -106,22 +133,8 @@ namespace Epoch::Assets
 		}
 
 		// Already loading?
-		auto it = myLoadingAssets.find(aHandle);
-		if (it != myLoadingAssets.end())
+		if (myLoadingAssets.contains(aHandle))
 		{
-			auto& future = it->second;
-			if (future.wait_for(std::chrono::seconds(0)) == std::future_status::ready)
-			{
-				std::shared_ptr<Asset> asset = future.get();
-				myLoadingAssets.erase(aHandle);
-
-				if (asset)
-				{
-					myLoadedAssets[aHandle] = asset;
-					AssetMetadataSerializer::Serialize(GetMetaFilePath(aHandle), metadata);
-				}
-				return asset;
-			}
 			return nullptr;
 		}
 		else
@@ -143,13 +156,16 @@ namespace Epoch::Assets
 			js.SubmitJob("LoadAsset_" + std::to_string(aHandle), [=]() -> std::shared_ptr<Asset>
 						 {
 							 std::shared_ptr<Asset> loaded;
-							 if (AssetImporter::TryLoadData(metadata, loaded)) return loaded;
+							 if (AssetImporter::TryLoadData(metadata, loaded))
+							 {
+								 return loaded;
+							 }
 							 return nullptr;
 						 });
 
 		myLoadingAssets[aHandle] = future;
 		return nullptr;
-	}
+	}*/
 
 	void EditorAssetManager::AddMemoryOnlyAsset(std::shared_ptr<Asset> aAsset, std::string_view aName)
 	{

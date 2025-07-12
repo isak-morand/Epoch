@@ -39,6 +39,12 @@ namespace Epoch
 
 			if (!myWindowMinimized)
 			{
+				if (myUpdateCallback)
+				{
+					EPOCH_PROFILE_SCOPE("Engine::Run: Update Callback");
+					myUpdateCallback();
+				}
+
 				myRendererInterface->BeginFrame();
 
 				{
@@ -47,12 +53,6 @@ namespace Epoch
 					{
 						layer->OnUpdate();
 					}
-				}
-
-				if (myUpdateCallback)
-				{
-					EPOCH_PROFILE_SCOPE("Engine::Run: Update Callback");
-					myUpdateCallback();
 				}
 
 				if (mySpecification.ImGuiEnabled)
